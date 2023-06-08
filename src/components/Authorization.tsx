@@ -10,8 +10,9 @@ import { Field, Form, Formik } from "formik";
 import { observer } from "mobx-react-lite";
 import Head from "next/head";
 import { FC, useContext } from "react";
+import { ToastContainer } from "react-toastify";
 
-const Authorization: FC<IAuthorisation> = ({ isLogin }) => {
+const Authorization: FC<IAuthorisation> = ({ isLogin, handleToast }) => {
   const { store } = useContext(Context);
   function validateName(value: any) {
     let error;
@@ -30,13 +31,11 @@ const Authorization: FC<IAuthorisation> = ({ isLogin }) => {
           email: "",
           password: "",
         }}
-        onSubmit={async (values) => {
-          try {
-            isLogin
-              ? store.login(values.email, values.password)
-              : store.registration(values.email, values.password);
-          } catch (error) {
-            console.log(error);
+        onSubmit={(values) => {
+          if (isLogin) {
+            store.login(values.email, values.password);
+          } else {
+            store.registration(values.email, values.password);
           }
         }}
       >
@@ -88,12 +87,13 @@ const Authorization: FC<IAuthorisation> = ({ isLogin }) => {
                 type="submit"
                 className="text-white bg-red-600 hover:bg-red-500 px-[70px] py-[9px] mt-3 duration-500 transform rounded-[5px] font-bold text-base "
               >
-                Confirm
+                {isLogin ? "Authorization" : "Registration"}
               </button>
             </div>
           </Form>
         )}
       </Formik>
+      <ToastContainer />
     </>
   );
 };

@@ -3,6 +3,7 @@ import { makeAutoObservable, runInAction } from "mobx";
 import AuthService from "../services/AuthService";
 import axios from 'axios';
 import EmployeeService from "@/services/EmployeeService";
+import { toast } from "react-toastify";
 
 const API_URL = process.env.API_URL;
 
@@ -40,6 +41,7 @@ export default class Store {
             this.setAuth(true);
             this.setUser(response.data.user);
         } catch (e: any) {
+            toast.error(e.response?.data?.message)
             console.log(e.response?.data?.message);
         }
     }
@@ -50,8 +52,9 @@ export default class Store {
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
             this.setUser(response.data.user);
-        } catch (e) {
-            console.log("Error");
+        } catch (e: any) {
+            toast.error(e.response?.data?.message)
+            console.log(e.response?.data?.message);
         }
     }
 
@@ -61,8 +64,9 @@ export default class Store {
             localStorage.removeItem('token');
             this.setAuth(false);
             this.setUser({} as IUser);
-        } catch (e) {
-            console.log("Error");
+        } catch (e: any) {
+            toast.error(e.response?.data?.message)
+            console.log(e.response?.data?.message)
         }
     }
 
@@ -72,8 +76,9 @@ export default class Store {
             localStorage.setItem('token', response.data.accessToken);
             this.setAuth(true);
             this.setUser(response.data.user);
-        } catch (e) {
-            console.log("Error");
+        } catch (e: any) {
+            toast.error(e.response?.data?.message)
+            console.log(e.response?.data?.message)
         } finally {
             this.setLoading(false);
         }

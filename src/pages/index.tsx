@@ -17,6 +17,7 @@ const Home: NextPage = () => {
   const [isEditEmployee, setIsEditEmployee] = useState(false);
   const [isDeleteModal, setIsDeleteModal] = useState(false);
   const [idEmployee, setIdEmployee] = useState<string | undefined>();
+  const [isLogin, setIsLogin] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -42,11 +43,33 @@ const Home: NextPage = () => {
 
   if (!store.isAuth) {
     return (
-      <div className="flex justify-center">
-        <div className="w-[500px]">
-          <Authorization isLogin={true} />
+      <>
+        <div className="flex justify-center">
+          <div className="w-[500px]">
+            {isLogin ? (
+              <>
+                <Authorization isLogin={true} handleToast={handleToast} />
+                <button
+                  className="pt-3 w-[100%] text-end hover:text-red-500"
+                  onClick={() => setIsLogin(false)}
+                >
+                  Registration
+                </button>
+              </>
+            ) : (
+              <>
+                <Authorization isLogin={false} handleToast={handleToast} />
+                <button
+                  className="pt-3 w-[100%] text-end hover:text-red-500"
+                  onClick={() => setIsLogin(true)}
+                >
+                  Authorization
+                </button>
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 

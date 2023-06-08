@@ -78,5 +78,6 @@ export interface DeleteModalProps {
 }
 
 export interface IAuthorisation {
-    isLogin: boolean
+    isLogin: boolean;
+    handleToast: Function;
 }
