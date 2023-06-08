@@ -1,20 +1,21 @@
 import {
+  EmployeeInterface,
   EmployeeInterfaceValue,
   EmployeesProps,
 } from "@/interfaces/interfaces";
-import { useAddEmployeeMutation } from "@/store/employeesApi";
-import { FC } from "react";
+import { FC, useContext } from "react";
 import ModalEmployee from "./ModalEmployee";
+import { Context } from "@/pages/_app";
 
 const NewEmployees: FC<EmployeesProps> = ({
   setIsModal,
   isEdit,
   handleToast,
 }) => {
-  const [addEmployee] = useAddEmployeeMutation();
+  const { store } = useContext(Context);
   const onSubmit = async (values: EmployeeInterfaceValue) => {
     try {
-      await addEmployee({
+      store.addEmployee({
         firstname: values.firstname,
         lastname: values.lastname,
         birthdate: values.birthdate.split("-").reverse().join("."),
@@ -25,7 +26,7 @@ const NewEmployees: FC<EmployeesProps> = ({
           street: values.street,
           number: values.number,
         },
-      });
+      } as EmployeeInterface);
       handleToast(true);
       setIsModal(false);
     } catch (error) {

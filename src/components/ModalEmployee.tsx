@@ -25,6 +25,7 @@ const ModalEmployee = ({
     }
     return error;
   }
+
   return (
     <>
       <Modal

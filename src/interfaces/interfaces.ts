@@ -1,5 +1,23 @@
+import Store from "@/store/store";
+
+export interface State {
+    store: Store;
+}
+
 export interface EmployeesInterface {
     employees: EmployeeInterface[];
+}
+
+export interface IUser {
+    email: string;
+    isActivated: boolean;
+    id: string;
+}
+
+export interface AuthResponse {
+    accessToken: string;
+    refreshToken: string;
+    user: IUser;
 }
 
 export interface Token {
@@ -19,7 +37,7 @@ export interface AuthInterface {
 }
 
 export interface EmployeeInterface {
-    _id: string;
+    _id: string | undefined;
     firstname: string;
     lastname: string;
     birthdate: string;
@@ -57,4 +75,8 @@ export interface DeleteModalProps {
     setIsDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
     isDeleteModal: boolean;
     handleToast: Function;
+}
+
+export interface IAuthorisation {
+    isLogin: boolean
 }

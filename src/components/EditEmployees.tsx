@@ -1,25 +1,13 @@
-import {
-  useGetEmployeeQuery,
-  useUpdateEmployeeMutation,
-} from "@/store/employeesApi";
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalOverlay,
-  useDisclosure,
-} from "@chakra-ui/react";
-import { FC } from "react";
-import ErrorData from "./Error/ErrorData";
-import router from "next/router";
+import { useDisclosure } from "@chakra-ui/react";
+import { FC, useContext, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   EmployeeInterfaceValue,
   EmployeesProps,
 } from "@/interfaces/interfaces";
 import ModalEmployee from "./ModalEmployee";
+import EmployeeService from "@/services/EmployeeService";
+import { Context } from "@/pages/_app";
 
 const DynamicSpinner = dynamic(() => import("../components/Spinner"), {
   ssr: false,
@@ -32,37 +20,35 @@ const Employees: FC<EmployeesProps> = ({
   handleToast,
 }) => {
   const { onClose } = useDisclosure();
-  const [updateEmployee] = useUpdateEmployeeMutation();
-  const data = useGetEmployeeQuery({ id });
+  const [editValues, setEditValues] = useState<EmployeeInterfaceValue>();
+  const { store } = useContext(Context);
 
-  if (data.isLoading) {
-    return (
-      <>
-        <DynamicSpinner />
-      </>
-    );
-  }
-  if (data.isError) {
-    return (
-      <div className="flex justify-center ">
-        <Modal onClose={onClose} isOpen={data.isError} isCentered>
-          <ModalOverlay />
-          <ModalContent>
-            <ModalBody className="flex justify-center items-center " pt={50}>
-              <ErrorData />
-            </ModalBody>
-            <ModalFooter>
-              <Button onClick={() => router.reload()}>Back</Button>
-            </ModalFooter>
-          </ModalContent>
-        </Modal>
-      </div>
-    );
+  useEffect(() => {
+    getEmployee();
+  }, []);
+
+  async function getEmployee() {
+    try {
+      const response = await EmployeeService.fetchEmployee(id);
+      const initialValues = {
+        firstname: response.data.firstname,
+        lastname: response.data.lastname,
+        phone: response.data.phone,
+        birthdate: response.data.birthdate.split(".").reverse().join("-"),
+        city: response.data.address.city,
+        zip: response.data.address.zip,
+        street: response.data.address.street,
+        number: response.data.address.number,
+      };
+      setEditValues(initialValues);
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   const onSubmit = async (values: EmployeeInterfaceValue) => {
     try {
-      await updateEmployee({
+      await store.updateEmployee(id, {
         _id: id,
         firstname: values.firstname,
         lastname: values.lastname,
@@ -81,25 +67,22 @@ const Employees: FC<EmployeesProps> = ({
       handleToast(false);
     }
   };
-  const initialValues = {
-    firstname: data.data.firstname,
-    lastname: data.data.lastname,
-    phone: data.data.phone,
-    birthdate: data.data.birthdate.split(".").reverse().join("-"),
-    city: data.data.address.city,
-    zip: data.data.address.zip,
-    street: data.data.address.street,
-    number: data.data.address.number,
-  };
+
   return (
-    <div className="flex justify-center ">
-      <ModalEmployee
-        setIsModal={setIsModal}
-        isEdit={isEdit}
-        onSubmit={onSubmit}
-        initialValues={initialValues}
-      />
-    </div>
+    <>
+      {editValues ? (
+        <div className="flex justify-center ">
+          <ModalEmployee
+            setIsModal={setIsModal}
+            isEdit={isEdit}
+            onSubmit={onSubmit}
+            initialValues={editValues}
+          />
+        </div>
+      ) : (
+        <DynamicSpinner />
+      )}
+    </>
   );
 };
 export default Employees;

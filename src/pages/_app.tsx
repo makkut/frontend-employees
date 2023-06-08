@@ -1,16 +1,27 @@
 import type { AppProps } from "next/app";
 import { ChakraProvider } from "@chakra-ui/react";
-import { Provider } from "react-redux";
-import store from "@/store";
+import Store from "@/store/store";
 import "@/styles/globals.css";
 import "react-toastify/dist/ReactToastify.css";
+import { createContext } from "react";
+import { State } from "../interfaces/interfaces";
+
+export const store = new Store();
+
+export const Context = createContext<State>({
+  store,
+});
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <Provider store={store}>
+    <Context.Provider
+      value={{
+        store,
+      }}
+    >
       <ChakraProvider>
         <Component {...pageProps} />
       </ChakraProvider>
-    </Provider>
+    </Context.Provider>
   );
 }

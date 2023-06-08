@@ -1,57 +1,36 @@
 import EditEmployees from "@/components/EditEmployees";
 import NewEmployees from "@/components/NewEmployees";
 import ErrorData from "@/components/Error/ErrorData";
-import { EmployeeInterface } from "@/interfaces/interfaces";
-import { useGetEmployeesQuery } from "@/store/employeesApi";
-import {
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
-} from "@chakra-ui/react";
 import { NextPage } from "next";
-import dynamic from "next/dynamic";
 import Head from "next/head";
-import { useState } from "react";
-import { RiDeleteBin6Line, RiEditBoxLine } from "react-icons/ri";
+import { useContext, useEffect, useState } from "react";
 import DeleteModal from "@/components/DeleteModal";
 import { ToastContainer, toast } from "react-toastify";
 import Authorization from "@/components/Authorization";
-import { useSelector } from "react-redux";
-
-const DynamicSpinner = dynamic(() => import("../components/Spinner"), {
-  ssr: false,
-});
+import { Context } from "./_app";
+import { observer } from "mobx-react-lite";
+import EmployeesList from "@/components/EmployeesList";
 
 const Home: NextPage = () => {
-  const isLoggedIn = useSelector((state: any) => state.auth.isLoggedIn);
-  console.log("isLoggedIn", isLoggedIn);
-  const data = useGetEmployeesQuery();
+  const { store } = useContext(Context);
   const [isAddNewEmployee, setIsAddNewEmployee] = useState(false);
   const [isEditEmployee, setIsEditEmployee] = useState(false);
   const [isDeleteModal, setIsDeleteModal] = useState(false);
   const [idEmployee, setIdEmployee] = useState<string | undefined>();
-  console.log("data", data);
+
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      store.checkAuth();
+    }
+  }, []);
+
   const handleToast = (isSuccess: boolean) => {
     isSuccess
       ? toast.success("completed successfully!")
       : toast.error("error, operation failed!");
   };
 
-  const handleDeleteEmployee = (id: string) => {
-    setIsDeleteModal(true);
-    setIdEmployee(id);
-  };
-
-  const handleUpdateEmployee = (id: string) => {
-    setIsEditEmployee(true);
-    setIdEmployee(id);
-  };
-
-  if (data.isError) {
+  if (store.isError) {
     return (
       <main className=" flex justify-center mt-[12rem]">
         <div>
@@ -61,10 +40,12 @@ const Home: NextPage = () => {
     );
   }
 
-  if (data.isLoading) {
+  if (!store.isAuth) {
     return (
-      <div className=" flex justify-center mt-[12rem]">
-        <DynamicSpinner />
+      <div className="flex justify-center">
+        <div className="w-[500px]">
+          <Authorization isLogin={true} />
+        </div>
       </div>
     );
   }
@@ -74,15 +55,30 @@ const Home: NextPage = () => {
       <Head>
         <title>Employee list</title>
       </Head>
-
-      {/* {!isLoggedIn && (
-        <div className="flex justify-center">
-          <div className="w-[500px]">
-            <Authorization />
-          </div>
+      <div className="flex justify-center text-center">
+        <div>
+          <h1 className="text-2xl font-bold pt-6">
+            {store.isAuth
+              ? `User ${store.user.email} is authorized`
+              : "AUTHORIZE"}
+          </h1>
+          <h1 className="text-2xl font-bold">
+            {store.user.isActivated
+              ? "Account verified by mail"
+              : "CONFIRM ACCOUNT BY MAIL!!!!"}
+          </h1>
+          {!store.user.isActivated && (
+            <button
+              onClick={() => {
+                store.logout();
+              }}
+              className="text-white bg-gray-400 hover:bg-gray-500 px-[70px] py-[9px] mt-3 duration-500 transform rounded-[5px] font-bold text-base"
+            >
+              Back
+            </button>
+          )}
         </div>
-      )} */}
-
+      </div>
       <main className=" flex justify-center items-center">
         {isAddNewEmployee && (
           <NewEmployees
@@ -99,58 +95,7 @@ const Home: NextPage = () => {
             handleToast={handleToast}
           />
         )}
-        <div className="text-center pt-[15px]">
-          <h1 className="text-2xl font-bold">Employee list</h1>
-          <button
-            onClick={() => {
-              setIsAddNewEmployee(true);
-            }}
-            className="text-white bg-red-600 hover:bg-red-500 px-[70px] py-[9px] mt-3 duration-500 rounded-[5px] font-bold text-base"
-          >
-            Add New Employee
-          </button>
-          <TableContainer className="mt-3">
-            {data?.data?.length !== 0 ? (
-              <Table variant="striped" colorScheme="blue">
-                <Thead>
-                  <Tr>
-                    <Th>first name</Th>
-                    <Th>last name</Th>
-                    <Th>Actions</Th>
-                  </Tr>
-                </Thead>
-                <Tbody>
-                  {data?.data?.map((e: EmployeeInterface) => (
-                    <Tr key={e._id}>
-                      <Td>{e.firstname}</Td>
-                      <Td>{e.lastname}</Td>
-                      <Td>
-                        <div className="flex">
-                          <RiEditBoxLine
-                            size={23}
-                            className="mr-2 cursor-pointer"
-                            onClick={() => {
-                              handleUpdateEmployee(e._id);
-                            }}
-                          />
-                          <RiDeleteBin6Line
-                            className="cursor-pointer"
-                            size={23}
-                            onClick={() => {
-                              handleDeleteEmployee(e._id);
-                            }}
-                          />
-                        </div>
-                      </Td>
-                    </Tr>
-                  ))}
-                </Tbody>
-              </Table>
-            ) : (
-              <p className="text-lg">List is empty</p>
-            )}
-          </TableContainer>
-        </div>
+        {store.user.isActivated && <EmployeesList />}
       </main>
       <ToastContainer />
       <DeleteModal
@@ -163,4 +108,4 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default observer(Home);

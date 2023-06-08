@@ -1,5 +1,5 @@
-import { useActions } from "@/hooks/useActions";
-import { useRegisterMutation, useLoginMutation } from "@/store/employeesApi";
+import { IAuthorisation } from "@/interfaces/interfaces";
+import { Context } from "@/pages/_app";
 import {
   FormControl,
   FormErrorMessage,
@@ -7,11 +7,12 @@ import {
   Input,
 } from "@chakra-ui/react";
 import { Field, Form, Formik } from "formik";
+import { observer } from "mobx-react-lite";
+import Head from "next/head";
+import { FC, useContext } from "react";
 
-const Authorization = () => {
-  const { setIsLoggedIn } = useActions();
-  const [register] = useRegisterMutation();
-  const [login] = useLoginMutation();
+const Authorization: FC<IAuthorisation> = ({ isLogin }) => {
+  const { store } = useContext(Context);
   function validateName(value: any) {
     let error;
     if (!value) {
@@ -21,6 +22,9 @@ const Authorization = () => {
   }
   return (
     <>
+      <Head>
+        <title>Authorization | Employee list</title>
+      </Head>
       <Formik
         initialValues={{
           email: "",
@@ -28,51 +32,13 @@ const Authorization = () => {
         }}
         onSubmit={async (values) => {
           try {
-            const res = await register({
-              email: values.email,
-              password: values.password,
-            });
-            console.log("res", res);
-            // if (res.error?.status === 200) {
-            //   const resp = await login({
-            //     email: values.email,
-            //     password: values.password,
-            //   });
-            //   setIsLoggedIn();
-            //   console.log(resp);
-            // }
-          } catch (error) {}
+            isLogin
+              ? store.login(values.email, values.password)
+              : store.registration(values.email, values.password);
+          } catch (error) {
+            console.log(error);
+          }
         }}
-        // onSubmit={async (values, actions) => {
-        //   try {
-        //     const responseData = await axios.post(
-        //       `${process.env.API_URL}/api/auth/local/register`,
-        //       {
-        //         email: values.email,
-        //         password: values.password,
-        //         username: values.username,
-        //       }
-        //     );
-        //     console.log("responseData", responseData);
-        //     if (responseData.status == 200) {
-        //       const result = await signIn("credentials", {
-        //         redirect: false,
-        //         email: values.email,
-        //         password: values.password,
-        //       });
-        //       if (result?.ok) {
-        //         router.push("/profile");
-        //         return;
-        //       }
-        //       toast.error("email/password is not valid");
-        //       actions.setSubmitting(false);
-        //     }
-        //     toast.error("Error");
-        //   } catch (error: any) {
-        //     toast.error(error.response.data.error.message);
-        //     console.error(error);
-        //   }
-        // }}
       >
         {(props) => (
           <Form>
@@ -124,12 +90,6 @@ const Authorization = () => {
               >
                 Confirm
               </button>
-              {/* <button
-                onClick={() => {}}
-                className="text-white bg-gray-400 hover:bg-gray-500 px-[70px] py-[9px] mt-3 duration-500 transform rounded-[5px] font-bold text-base"
-              >
-                Cancel
-              </button> */}
             </div>
           </Form>
         )}
@@ -138,4 +98,4 @@ const Authorization = () => {
   );
 };
 
-export default Authorization;
+export default observer(Authorization);

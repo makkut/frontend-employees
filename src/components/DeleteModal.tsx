@@ -1,5 +1,5 @@
 import { DeleteModalProps } from "@/interfaces/interfaces";
-import { useDeleteEmployeeMutation } from "@/store/employeesApi";
+import { Context } from "@/pages/_app";
 import {
   Modal,
   ModalOverlay,
@@ -7,7 +7,7 @@ import {
   ModalHeader,
   ModalBody,
 } from "@chakra-ui/react";
-import { FC } from "react";
+import { FC, useContext } from "react";
 
 const DeleteModal: FC<DeleteModalProps> = ({
   id,
@@ -15,7 +15,7 @@ const DeleteModal: FC<DeleteModalProps> = ({
   setIsDeleteModal,
   handleToast,
 }) => {
-  const [deleteEmployee] = useDeleteEmployeeMutation();
+  const { store } = useContext(Context);
   return (
     <>
       <Modal
@@ -35,7 +35,7 @@ const DeleteModal: FC<DeleteModalProps> = ({
               <button
                 onClick={async () => {
                   try {
-                    await deleteEmployee(id);
+                    await store.deleteEmployee(id);
                     setIsDeleteModal(false);
                     handleToast(true);
                   } catch (error) {
