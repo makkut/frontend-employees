@@ -13,26 +13,25 @@ import {
 } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import Head from "next/head";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { RiDeleteBin6Line, RiEditBoxLine } from "react-icons/ri";
 import DeleteModal from "@/components/DeleteModal";
 import { ToastContainer, toast } from "react-toastify";
-import { Context } from "../pages/_app";
 import { observer } from "mobx-react-lite";
-
-const DynamicSpinner = dynamic(() => import("../components/Spinner"), {
-  ssr: false,
-});
+import { useEmployees, useUser } from "@/store/zustand";
 
 const EmployeesList = () => {
-  const { store } = useContext(Context);
+  const logout = useUser((state: any) => state.logout);
+  const { getEmployees, isError, employees } = useEmployees(
+    (state: any) => state
+  );
   const [isAddNewEmployee, setIsAddNewEmployee] = useState(false);
   const [isEditEmployee, setIsEditEmployee] = useState(false);
   const [isDeleteModal, setIsDeleteModal] = useState(false);
   const [idEmployee, setIdEmployee] = useState<string | undefined>();
 
   useEffect(() => {
-    store.getEmployees();
+    getEmployees();
   }, []);
 
   const handleToast = (isSuccess: boolean) => {
@@ -51,21 +50,13 @@ const EmployeesList = () => {
     setIdEmployee(id);
   };
 
-  if (store.isError) {
+  if (isError) {
     return (
       <main className=" flex justify-center mt-[12rem]">
         <div>
           <ErrorData />
         </div>
       </main>
-    );
-  }
-
-  if (store.isLoading) {
-    return (
-      <div className=" flex justify-center mt-[12rem] z-50">
-        <DynamicSpinner />
-      </div>
     );
   }
   return (
@@ -102,14 +93,14 @@ const EmployeesList = () => {
           </button>
           <button
             onClick={() => {
-              store.logout();
+              logout();
             }}
             className="text-white bg-gray-400 hover:bg-gray-500 px-[70px] py-[9px] mt-3 duration-500 transform rounded-[5px] font-bold text-base ml-5"
           >
             Logout
           </button>
           <TableContainer className="mt-3">
-            {store.employees.length !== 0 ? (
+            {employees.length !== 0 ? (
               <Table variant="striped" colorScheme="blue">
                 <Thead>
                   <Tr>
@@ -119,7 +110,7 @@ const EmployeesList = () => {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {store.employees.map((e: EmployeeInterface) => (
+                  {employees.map((e: EmployeeInterface) => (
                     <Tr key={e._id}>
                       <Td>{e.firstname}</Td>
                       <Td>{e.lastname}</Td>

@@ -1,13 +1,12 @@
-import { useDisclosure } from "@chakra-ui/react";
-import { FC, useContext, useEffect, useState } from "react";
+import { FC, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
   EmployeeInterfaceValue,
   EmployeesProps,
 } from "@/interfaces/interfaces";
 import ModalEmployee from "./ModalEmployee";
-import EmployeeService from "@/services/EmployeeService";
-import { Context } from "@/pages/_app";
+import { useEmployees } from "@/store/zustand";
+import _ from "lodash";
 
 const DynamicSpinner = dynamic(() => import("../components/Spinner"), {
   ssr: false,
@@ -19,36 +18,17 @@ const Employees: FC<EmployeesProps> = ({
   isEdit,
   handleToast,
 }) => {
-  const { onClose } = useDisclosure();
-  const [editValues, setEditValues] = useState<EmployeeInterfaceValue>();
-  const { store } = useContext(Context);
+  const { getEmployee, updateEmployee, employee } = useEmployees(
+    (state: any) => state
+  );
 
   useEffect(() => {
-    getEmployee();
+    getEmployee(id);
   }, []);
-
-  async function getEmployee() {
-    try {
-      const response = await EmployeeService.fetchEmployee(id);
-      const initialValues = {
-        firstname: response.data.firstname,
-        lastname: response.data.lastname,
-        phone: response.data.phone,
-        birthdate: response.data.birthdate.split(".").reverse().join("-"),
-        city: response.data.address.city,
-        zip: response.data.address.zip,
-        street: response.data.address.street,
-        number: response.data.address.number,
-      };
-      setEditValues(initialValues);
-    } catch (e) {
-      console.log(e);
-    }
-  }
 
   const onSubmit = async (values: EmployeeInterfaceValue) => {
     try {
-      await store.updateEmployee(id, {
+      await updateEmployee(id, {
         _id: id,
         firstname: values.firstname,
         lastname: values.lastname,
@@ -70,13 +50,22 @@ const Employees: FC<EmployeesProps> = ({
 
   return (
     <>
-      {editValues ? (
+      {!_.isEmpty(employee) ? (
         <div className="flex justify-center ">
           <ModalEmployee
             setIsModal={setIsModal}
             isEdit={isEdit}
             onSubmit={onSubmit}
-            initialValues={editValues}
+            initialValues={{
+              firstname: employee.firstname,
+              lastname: employee.lastname,
+              phone: employee.phone,
+              birthdate: employee.birthdate.split(".").reverse().join("-"),
+              city: employee.address.city,
+              zip: employee.address.zip,
+              street: employee.address.street,
+              number: employee.address.number,
+            }}
           />
         </div>
       ) : (

@@ -1,5 +1,5 @@
 import { DeleteModalProps } from "@/interfaces/interfaces";
-import { Context } from "@/pages/_app";
+import { useEmployees } from "@/store/zustand";
 import {
   Modal,
   ModalOverlay,
@@ -15,7 +15,7 @@ const DeleteModal: FC<DeleteModalProps> = ({
   setIsDeleteModal,
   handleToast,
 }) => {
-  const { store } = useContext(Context);
+  const { deleteEmployee } = useEmployees((state: any) => state);
   return (
     <>
       <Modal
@@ -35,7 +35,7 @@ const DeleteModal: FC<DeleteModalProps> = ({
               <button
                 onClick={async () => {
                   try {
-                    await store.deleteEmployee(id);
+                    await deleteEmployee(id);
                     setIsDeleteModal(false);
                     handleToast(true);
                   } catch (error) {

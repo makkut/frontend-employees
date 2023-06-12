@@ -1,5 +1,5 @@
 import { IAuthorisation } from "@/interfaces/interfaces";
-import { Context } from "@/pages/_app";
+import { useUser } from "@/store/zustand";
 import {
   FormControl,
   FormErrorMessage,
@@ -9,11 +9,12 @@ import {
 import { Field, Form, Formik } from "formik";
 import { observer } from "mobx-react-lite";
 import Head from "next/head";
-import { FC, useContext } from "react";
+import { FC } from "react";
 import { ToastContainer } from "react-toastify";
 
-const Authorization: FC<IAuthorisation> = ({ isLogin, handleToast }) => {
-  const { store } = useContext(Context);
+const Authorization: FC<IAuthorisation> = ({ isLogin }) => {
+  const { login, registration } = useUser((state: any) => state);
+
   function validateName(value: any) {
     let error;
     if (!value) {
@@ -33,9 +34,9 @@ const Authorization: FC<IAuthorisation> = ({ isLogin, handleToast }) => {
         }}
         onSubmit={(values) => {
           if (isLogin) {
-            store.login(values.email, values.password);
+            login(values.email, values.password);
           } else {
-            store.registration(values.email, values.password);
+            registration(values.email, values.password);
           }
         }}
       >

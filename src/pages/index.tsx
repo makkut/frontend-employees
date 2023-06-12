@@ -3,16 +3,23 @@ import NewEmployees from "@/components/NewEmployees";
 import ErrorData from "@/components/Error/ErrorData";
 import { NextPage } from "next";
 import Head from "next/head";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DeleteModal from "@/components/DeleteModal";
 import { ToastContainer, toast } from "react-toastify";
 import Authorization from "@/components/Authorization";
-import { Context } from "./_app";
 import { observer } from "mobx-react-lite";
 import EmployeesList from "@/components/EmployeesList";
+import { useUser } from "@/store/zustand";
+import dynamic from "next/dynamic";
+
+const DynamicSpinner = dynamic(() => import("../components/Spinner"), {
+  ssr: false,
+});
 
 const Home: NextPage = () => {
-  const { store } = useContext(Context);
+  const { checkAuth, isError, isAuth, isLoading, user, logout } = useUser(
+    (state: any) => state
+  );
   const [isAddNewEmployee, setIsAddNewEmployee] = useState(false);
   const [isEditEmployee, setIsEditEmployee] = useState(false);
   const [isDeleteModal, setIsDeleteModal] = useState(false);
@@ -21,7 +28,7 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
-      store.checkAuth();
+      checkAuth();
     }
   }, []);
 
@@ -31,7 +38,7 @@ const Home: NextPage = () => {
       : toast.error("error, operation failed!");
   };
 
-  if (store.isError) {
+  if (isError) {
     return (
       <main className=" flex justify-center mt-[12rem]">
         <div>
@@ -40,8 +47,14 @@ const Home: NextPage = () => {
       </main>
     );
   }
-
-  if (!store.isAuth) {
+  if (isLoading) {
+    return (
+      <div className=" flex justify-center mt-[12rem] z-50">
+        <DynamicSpinner />
+      </div>
+    );
+  }
+  if (!isAuth) {
     return (
       <>
         <div className="flex justify-center">
@@ -80,19 +93,17 @@ const Home: NextPage = () => {
         <div className="flex justify-center text-center">
           <div>
             <h1 className="text-2xl font-bold pt-6">
-              {store.isAuth
-                ? `User ${store.user.email} is authorized`
-                : "AUTHORIZE"}
+              {isAuth ? `User ${user.email} is authorized` : "AUTHORIZE"}
             </h1>
             <h1 className="text-2xl font-bold">
-              {store.user.isActivated
+              {user.isActivated
                 ? "Account verified by mail"
                 : "CONFIRM ACCOUNT BY MAIL!!!!"}
             </h1>
-            {!store.user.isActivated && (
+            {!user.isActivated && (
               <button
                 onClick={() => {
-                  store.logout();
+                  logout();
                 }}
                 className="text-white bg-gray-400 hover:bg-gray-500 px-[70px] py-[9px] mt-3 duration-500 transform rounded-[5px] font-bold text-base"
               >
@@ -117,7 +128,7 @@ const Home: NextPage = () => {
               handleToast={handleToast}
             />
           )}
-          {store.user.isActivated && <EmployeesList />}
+          {user.isActivated && <EmployeesList />}
         </main>
         <ToastContainer />
         <DeleteModal

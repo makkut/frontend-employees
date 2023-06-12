@@ -3,19 +3,19 @@ import {
   EmployeeInterfaceValue,
   EmployeesProps,
 } from "@/interfaces/interfaces";
-import { FC, useContext } from "react";
+import { FC } from "react";
 import ModalEmployee from "./ModalEmployee";
-import { Context } from "@/pages/_app";
+import { useEmployees } from "@/store/zustand";
 
 const NewEmployees: FC<EmployeesProps> = ({
   setIsModal,
   isEdit,
   handleToast,
 }) => {
-  const { store } = useContext(Context);
+  const { addEmployee } = useEmployees((state: any) => state);
   const onSubmit = async (values: EmployeeInterfaceValue) => {
     try {
-      store.addEmployee({
+      addEmployee({
         firstname: values.firstname,
         lastname: values.lastname,
         birthdate: values.birthdate.split("-").reverse().join("."),
